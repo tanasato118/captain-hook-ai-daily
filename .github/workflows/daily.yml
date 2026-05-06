@@ -1,0 +1,26 @@
+name: Daily AI News Digest
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 毎朝 09:00 JST = 00:00 UTC
+    - cron: "0 0 * * *"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Run AI News Discord Bot
+        env:
+          X_BEARER_TOKEN:    ${{ secrets.X_BEARER_TOKEN }}
+          DISCORD_WEBHOOK:   ${{ secrets.DISCORD_WEBHOOK }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python ai_news_discord.py

@@ -1,0 +1,30 @@
+# 秘密情報（絶対に commit しない）
+.env
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.Python
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ローカル開発用設定（トークンが含まれる可能性）
+.claude/settings.local.json
+.cursor/
+.cursorrules
+.mcp.json
+
+# 実行ログ
+logs/
+*.log
