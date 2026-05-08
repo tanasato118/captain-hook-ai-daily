@@ -53,6 +53,29 @@ GitHub Actions (cron 09:00 JST)
    Discord Webhook（5 カテゴリ別 embed × 最大 10 件 / カテゴリ）
 ```
 
+## 動作フロー（Mermaid）
+
+```mermaid
+flowchart TD
+    A[GitHub Actions cron<br/>09:00 JST] --> B{ソース取得}
+    B --> C[RSS 6 ソース<br/>TechCrunch / The Verge /<br/>VentureBeat / MIT Tech Review /<br/>HuggingFace / OpenAI]
+    B --> D[X API 4 カテゴリ<br/>news / tips /<br/>monetize / monetize_jp]
+    C --> E[Claude Haiku<br/>カテゴリ別判定基準でフィルタ<br/>+ 日本語翻訳・要約]
+    D --> E
+    E --> F1[news embed<br/>新モデル/政策/OSS]
+    E --> F2[tech embed<br/>アーキ/ベンチ/最適化]
+    E --> F3[tips embed<br/>Claude/ChatGPT/Gemini<br/>プロンプト 48h 以内]
+    E --> F4[monetize embed<br/>海外フリーランス/SaaS/自動化]
+    E --> F5[monetize_jp embed<br/>note/Brain/Coconala/<br/>Udemy/Zenn]
+    F1 --> G[Discord Webhook<br/>5 カテゴリ別 embed<br/>最大 10 件 / カテゴリ]
+    F2 --> G
+    F3 --> G
+    F4 --> G
+    F5 --> G
+```
+
+各カテゴリの「有益判定基準」は `lib/claude_client.py` の `_CRITERIA` で明示しており、Claude Haiku が一貫した方針でフィルタ・要約します（後述「5 カテゴリのキュレーション基準」セクション参照）。
+
 ## 動作スクリーンショット
 
 毎朝 09:00 JST に Discord へ届く `AI Daily` 配信。最新 AI ニュース・技術情報・Tips・国内マネタイズ・海外マネタイズの 5 カテゴリを 1 メッセージで配信します。
@@ -101,6 +124,32 @@ GitHub Secrets に以下を設定してください:
 - **monetize_jp**: 国内プラットフォーム（note / Brain / Coconala / Udemy / Zenn 等）
 
 「マーケティング寄りの定性的な話」「投資・暗号資産」「企業向け B2B 事例」は明示的に除外しています。
+
+## 工夫点・技術的判断
+
+### 1. カテゴリ別判定基準のプロンプト埋め込み
+
+複数キュレーションサービスを試した結果、汎用的な「重要そうなニュース」フィルタは「自分が知りたいもの」と一致しないことが分かった。`lib/claude_client.py` の `_CRITERIA` にカテゴリ別の有益判定基準（含めるトピック / 除外するトピック）を明示し、Claude Haiku が一貫した方針でフィルタ・要約する設計を採用。基準を変更したい場合は dict を書き換えるだけで済む。
+
+### 2. 標準ライブラリのみで動作（外部依存ゼロ）
+
+`requests` も `feedparser` も使わず、Python 標準の `urllib.request` + `xml.etree.ElementTree` だけで動作。GitHub Actions の依存解決時間を最小化し、ライブラリ脆弱性のサプライチェーンリスクを排除。
+
+### 3. 48h 鮮度フィルタ + エンゲージメント順（tips カテゴリ）
+
+`tips` カテゴリは情報の鮮度が命のため、48 時間以内の投稿に限定 + エンゲージメント数（いいね + RT × 5 + 引用 × 3）で並び替え。「古いけど話題」より「新しくて伸びている」を優先する。
+
+### 4. 5 カテゴリ embed 色分け
+
+Discord での視認性を高めるため、`news` / `tech` / `tips` / `monetize` / `monetize_jp` で embed 色を変える。スクロール時に「自分の興味カテゴリ」を瞬時に識別可能。
+
+### 5. ログを残さない設計
+
+キュレーション結果はリポジトリ・ローカルファイルに保存せず、Discord 配信のみ。情報漏洩リスクを最小化し、運用上の dependent state（DB / S3 など）も持たない。
+
+### 6. X API ハンドリング
+
+X API v2 の Rate Limit / 401 / 429 を `try/except` で個別ハンドリングし、1 カテゴリ失敗が他カテゴリの収集を止めない設計。
 
 ## 成果・指標
 
