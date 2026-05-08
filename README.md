@@ -15,7 +15,10 @@
 
 ## できること
 
-- **RSS 6 ソース**: TechCrunch AI / The Verge AI / VentureBeat AI / MIT Tech Review / HuggingFace Blog / OpenAI News を毎朝収集
+- **RSS 11 フィード（3 カテゴリ）**:
+  - `news`（3 フィード）: TechCrunch AI / The Verge AI / VentureBeat
+  - `tech`（3 フィード）: MIT Tech Review / HuggingFace Blog / OpenAI News
+  - `monetize_jp`（5 フィード）: note.com のハッシュタグ RSS（AI / ChatGPT / AI マネタイズ / AI 副業 / 収益化）
 - **X API カテゴリ別取得**:
   - `news`: 主要 AI 公式アカウント（OpenAI / Anthropic / Google DeepMind / Meta / mistralai / xAI / nvidia）
   - `tips`: Claude / ChatGPT / Gemini の最新機能・実践プロンプト（48h 以内・エンゲージメント順）
@@ -43,30 +46,55 @@
 ```
 GitHub Actions (cron 09:00 JST)
    │
-   ├─ RSS  : TechCrunch AI / The Verge AI / VentureBeat / MIT Tech Review / HuggingFace / OpenAI
-   └─ X API: news / tips / monetize / monetize_jp
+   ├─ RSS (lib/sources.py / RSS_SOURCES)
+   │   ├ news        : TechCrunch AI / The Verge AI / VentureBeat
+   │   ├ tech        : MIT Tech Review / HuggingFace Blog / OpenAI News
+   │   └ monetize_jp : note.com ハッシュタグ RSS × 5 フィード
+   │
+   └─ X API (lib/sources.py / X_QUERIES)
+       ├ news        : OpenAI / Anthropic / DeepMind / Meta / mistralai / xAI / nvidia
+       ├ tips        : Claude / ChatGPT / Gemini プロンプト Tips
+       ├ monetize    : 海外マネタイズ
+       └ monetize_jp : 国内マネタイズ
             │
             ▼
    Claude Haiku（カテゴリ別判定基準でフィルタ + 日本語翻訳・要約）
             │
             ▼
    Discord Webhook（5 カテゴリ別 embed × 最大 10 件 / カテゴリ）
+
+カテゴリ別取得経路:
+   - news        : RSS + X mix
+   - tech        : RSS のみ
+   - tips        : X のみ
+   - monetize    : X のみ
+   - monetize_jp : RSS + X mix
 ```
 
 ## 動作フロー（Mermaid）
 
 ```mermaid
 flowchart TD
-    A[GitHub Actions cron<br/>09:00 JST] --> B{ソース取得}
-    B --> C[RSS 6 ソース<br/>TechCrunch / The Verge /<br/>VentureBeat / MIT Tech Review /<br/>HuggingFace / OpenAI]
-    B --> D[X API 4 カテゴリ<br/>news / tips /<br/>monetize / monetize_jp]
-    C --> E[Claude Haiku<br/>カテゴリ別判定基準でフィルタ<br/>+ 日本語翻訳・要約]
-    D --> E
-    E --> F1[news embed<br/>新モデル/政策/OSS]
-    E --> F2[tech embed<br/>アーキ/ベンチ/最適化]
-    E --> F3[tips embed<br/>Claude/ChatGPT/Gemini<br/>プロンプト 48h 以内]
-    E --> F4[monetize embed<br/>海外フリーランス/SaaS/自動化]
-    E --> F5[monetize_jp embed<br/>note/Brain/Coconala/<br/>Udemy/Zenn]
+    A[GitHub Actions cron<br/>09:00 JST] --> B{ソース取得<br/>lib/sources.py}
+    B --> C1[RSS news 3<br/>TechCrunch / The Verge / VentureBeat]
+    B --> C2[RSS tech 3<br/>MIT Tech Review / HuggingFace / OpenAI]
+    B --> C3[RSS monetize_jp 5<br/>note.com ハッシュタグ RSS]
+    B --> D1[X news<br/>OpenAI / Anthropic / DeepMind /<br/>Meta / mistralai / xAI / nvidia]
+    B --> D2[X tips<br/>Claude/ChatGPT/Gemini プロンプト<br/>48h 以内・エンゲージメント順]
+    B --> D3[X monetize<br/>海外フリーランス/SaaS/自動化]
+    B --> D4[X monetize_jp<br/>note/Brain/Coconala/<br/>Udemy/Zenn 等]
+    C1 --> E[Claude Haiku<br/>カテゴリ別判定基準でフィルタ<br/>+ 日本語翻訳・要約<br/>lib/claude_client.py]
+    C2 --> E
+    C3 --> E
+    D1 --> E
+    D2 --> E
+    D3 --> E
+    D4 --> E
+    E --> F1[news embed<br/>RSS+X mix<br/>新モデル/政策/OSS]
+    E --> F2[tech embed<br/>RSS のみ<br/>アーキ/ベンチ/最適化]
+    E --> F3[tips embed<br/>X のみ<br/>プロンプト Tips]
+    E --> F4[monetize embed<br/>X のみ<br/>海外マネタイズ]
+    E --> F5[monetize_jp embed<br/>RSS+X mix<br/>国内マネタイズ]
     F1 --> G[Discord Webhook<br/>5 カテゴリ別 embed<br/>最大 10 件 / カテゴリ]
     F2 --> G
     F3 --> G
