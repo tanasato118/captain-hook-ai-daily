@@ -1,4 +1,5 @@
 import json
+import urllib.error
 import unittest
 from unittest.mock import patch
 
@@ -52,6 +53,42 @@ class DiscordClientTest(unittest.TestCase):
                 for embed in payload["embeds"]
             )
             self.assertLessEqual(total_chars, 6000)
+
+    def test_send_embeds_retries_transient_discord_server_errors(self):
+        attempts = 0
+
+        class Response:
+            status = 204
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+        def fake_urlopen(req, timeout):
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise urllib.error.HTTPError(
+                    req.full_url,
+                    500,
+                    "Internal Server Error",
+                    hdrs={},
+                    fp=None,
+                )
+            return Response()
+
+        with (
+            patch("urllib.request.urlopen", side_effect=fake_urlopen),
+            patch("time.sleep"),
+        ):
+            send_embeds(
+                "https://discord.com/api/webhooks/test/token",
+                [{"title": "test", "fields": []}],
+            )
+
+        self.assertEqual(attempts, 2)
 
 
 if __name__ == "__main__":

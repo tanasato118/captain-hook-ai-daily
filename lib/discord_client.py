@@ -4,12 +4,14 @@ Discord Webhook にメッセージを送信するモジュール。
 from __future__ import annotations
 
 import json
+import time
 import urllib.error
 import urllib.request
 
 from .claude_client import CuratedItem
 
 _DISCORD_EMBED_TOTAL_CHAR_LIMIT = 6000
+_DISCORD_MAX_SEND_ATTEMPTS = 3
 
 _EMBED_META: dict[str, tuple[str, int]] = {
     # category -> (title, color)
@@ -85,10 +87,19 @@ def send_embeds(webhook_url: str, embeds: list[dict]) -> None:
             },
             method="POST",
         )
-        try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                if resp.status not in (200, 204):
-                    raise RuntimeError(f"Discord 応答 {resp.status}")
-        except urllib.error.HTTPError as e:
-            body = e.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"Discord HTTP {e.code}: {body[:300]}") from e
+        for attempt in range(1, _DISCORD_MAX_SEND_ATTEMPTS + 1):
+            try:
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    if resp.status not in (200, 204):
+                        raise RuntimeError(f"Discord 応答 {resp.status}")
+                break
+            except urllib.error.HTTPError as e:
+                body = e.read().decode("utf-8", errors="replace") if e.fp else ""
+                if e.code != 429 and e.code < 500:
+                    raise RuntimeError(f"Discord HTTP {e.code}: {body[:300]}") from e
+                if attempt == _DISCORD_MAX_SEND_ATTEMPTS:
+                    raise RuntimeError(f"Discord HTTP {e.code}: {body[:300]}") from e
+                retry_after = e.headers.get("Retry-After") if e.headers else None
+                delay = float(retry_after) if retry_after else attempt * 2
+                print(f"Discord retry {attempt}/{_DISCORD_MAX_SEND_ATTEMPTS}: HTTP {e.code}")
+                time.sleep(delay)
