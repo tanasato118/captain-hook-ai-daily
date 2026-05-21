@@ -9,6 +9,8 @@ import urllib.request
 
 from .claude_client import CuratedItem
 
+_DISCORD_EMBED_TOTAL_CHAR_LIMIT = 6000
+
 _EMBED_META: dict[str, tuple[str, int]] = {
     # category -> (title, color)
     "news":        ("🌐 最新AIニュース",                              0xFF6B6B),
@@ -19,6 +21,38 @@ _EMBED_META: dict[str, tuple[str, int]] = {
     "monetize_jp": ("🇯🇵 AI副業マネタイズ（note・Brain・国内）",       0xE84393),
     "monetize":    ("🌍 AI副業マネタイズ（海外・全手法）",             0xFFE66D),
 }
+
+
+def _embed_char_count(embed: dict) -> int:
+    """Discord's 6000 character limit is counted across all embeds in one message."""
+    return (
+        len(embed.get("title", ""))
+        + len(embed.get("description", ""))
+        + sum(
+            len(field.get("name", "")) + len(field.get("value", ""))
+            for field in embed.get("fields", [])
+        )
+        + len(embed.get("footer", {}).get("text", ""))
+    )
+
+
+def _chunk_embeds(embeds: list[dict]) -> list[list[dict]]:
+    chunks: list[list[dict]] = []
+    current: list[dict] = []
+    current_chars = 0
+
+    for embed in embeds:
+        embed_chars = _embed_char_count(embed)
+        if current and current_chars + embed_chars > _DISCORD_EMBED_TOTAL_CHAR_LIMIT:
+            chunks.append(current)
+            current = []
+            current_chars = 0
+        current.append(embed)
+        current_chars += embed_chars
+
+    if current:
+        chunks.append(current)
+    return chunks
 
 
 def build_embed(category: str, items: list[CuratedItem]) -> dict | None:
@@ -39,9 +73,9 @@ def build_embed(category: str, items: list[CuratedItem]) -> dict | None:
 
 
 def send_embeds(webhook_url: str, embeds: list[dict]) -> None:
-    """Discord Webhook に embeds を送信する（10 件ずつ分割）。"""
-    for i in range(0, len(embeds), 10):
-        payload = json.dumps({"embeds": embeds[i : i + 10]}).encode("utf-8")
+    """Discord Webhook に embeds を送信する（Discord の文字数制限に合わせて分割）。"""
+    for chunk in _chunk_embeds(embeds):
+        payload = json.dumps({"embeds": chunk}).encode("utf-8")
         req = urllib.request.Request(
             webhook_url,
             data=payload,
