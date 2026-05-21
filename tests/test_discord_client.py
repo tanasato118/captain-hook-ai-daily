@@ -3,10 +3,30 @@ import urllib.error
 import unittest
 from unittest.mock import patch
 
+from lib.claude_client import CuratedItem
+from lib.discord_client import build_embed
 from lib.discord_client import send_embeds
 
 
 class DiscordClientTest(unittest.TestCase):
+    def test_build_embed_truncates_fields_to_discord_limits(self):
+        embed = build_embed(
+            "news",
+            [
+                CuratedItem(
+                    title_ja="t" * 300,
+                    summary_ja="s" * 2000,
+                    url="https://example.com/" + "u" * 100,
+                    source="source",
+                )
+            ],
+        )
+
+        self.assertIsNotNone(embed)
+        self.assertLessEqual(len(embed["title"]), 256)
+        self.assertLessEqual(len(embed["fields"][0]["name"]), 256)
+        self.assertLessEqual(len(embed["fields"][0]["value"]), 1024)
+
     def test_send_embeds_splits_payloads_under_discord_embed_size_limit(self):
         sent_payloads = []
 

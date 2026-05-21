@@ -12,6 +12,9 @@ from .claude_client import CuratedItem
 
 _DISCORD_EMBED_TOTAL_CHAR_LIMIT = 6000
 _DISCORD_MAX_SEND_ATTEMPTS = 3
+_DISCORD_EMBED_TITLE_LIMIT = 256
+_DISCORD_FIELD_NAME_LIMIT = 256
+_DISCORD_FIELD_VALUE_LIMIT = 1024
 
 _EMBED_META: dict[str, tuple[str, int]] = {
     # category -> (title, color)
@@ -57,6 +60,20 @@ def _chunk_embeds(embeds: list[dict]) -> list[list[dict]]:
     return chunks
 
 
+def _truncate(text: str, limit: int) -> str:
+    if len(text) <= limit:
+        return text
+    if limit <= 1:
+        return text[:limit]
+    return text[: limit - 1].rstrip() + "…"
+
+
+def _field_value(item: CuratedItem) -> str:
+    link = f"\n[→ 元記事 / 元ポスト]({item.url})  `{item.source}`"
+    summary_limit = max(0, _DISCORD_FIELD_VALUE_LIMIT - len(link))
+    return f"{_truncate(item.summary_ja, summary_limit)}{link}"
+
+
 def build_embed(category: str, items: list[CuratedItem]) -> dict | None:
     """CuratedItem リストから Discord embed dict を構築する。空ならNone。"""
     if not items:
@@ -65,13 +82,17 @@ def build_embed(category: str, items: list[CuratedItem]) -> dict | None:
     title, color = _EMBED_META.get(category, (category, 0x5865F2))
     fields = [
         {
-            "name":   item.title_ja,
-            "value":  f"{item.summary_ja}\n[→ 元記事 / 元ポスト]({item.url})  `{item.source}`",
+            "name":   _truncate(item.title_ja, _DISCORD_FIELD_NAME_LIMIT),
+            "value":  _field_value(item),
             "inline": False,
         }
         for item in items
     ]
-    return {"title": title, "color": color, "fields": fields}
+    return {
+        "title": _truncate(title, _DISCORD_EMBED_TITLE_LIMIT),
+        "color": color,
+        "fields": fields,
+    }
 
 
 def send_embeds(webhook_url: str, embeds: list[dict]) -> None:
