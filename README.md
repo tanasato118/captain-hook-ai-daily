@@ -1,6 +1,6 @@
 # captain-hook-ai-daily
 
-**AI ニュース毎朝配信 Discord ボット**。RSS（TechCrunch AI / The Verge AI / VentureBeat / MIT Tech Review / HuggingFace Blog / OpenAI News）と X API（OpenAI / Anthropic / Google DeepMind / Meta / mistralai / xAI / nvidia）から最新情報を収集し、Claude Haiku でフィルタリング・日本語翻訳・要約してから Discord に配信します。GitHub Actions の cron で完全クラウド化されており、サーバ運用コストはゼロです。
+**AI ニュース毎朝配信 Discord ボット**。RSS（TechCrunch AI / The Verge AI / VentureBeat / MIT Tech Review / HuggingFace Blog / OpenAI News）と X API（主要 AI 企業、AIツールTips、AI画像・AI動画、AI副業系）から最新情報を収集し、Claude Haiku でフィルタリング・日本語翻訳・要約してから Discord に配信します。GitHub Actions の cron で完全クラウド化されており、サーバ運用コストはゼロです。
 
 > **Status**: 自社運用中（2026-04 〜 稼働継続）
 > **Author**: tanasato — [restartory.com](https://restartory.com)
@@ -21,10 +21,12 @@
   - `monetize_jp`（5 フィード）: note.com のハッシュタグ RSS（AI / ChatGPT / AI マネタイズ / AI 副業 / 収益化）
 - **X API カテゴリ別取得**:
   - `news`: 主要 AI 公式アカウント（OpenAI / Anthropic / Google DeepMind / Meta / mistralai / xAI / nvidia）
-  - `tips`: Claude / ChatGPT / Gemini の最新機能・実践プロンプト（48h 以内・エンゲージメント順）
+  - `tips`: ChatGPT / Claude / Gemini / Perplexity / Copilot / NotebookLM / Cursor 等の最新機能・実践プロンプト（48h 以内・エンゲージメント順）
+  - `creative_ai`: Midjourney / Runway / Sora / Kling / Pika / Luma / Stable Diffusion / ComfyUI / Flux 等の AI画像・AI動画情報
+  - `company_updates`: OpenAI / Anthropic / Google DeepMind / Meta AI / xAI / Mistral / NVIDIA / Microsoft / Perplexity 等の各社アップデート
   - `monetize`: AI 副業マネタイズ（フリーランス / 副業 / SaaS / 自動化）
   - `monetize_jp`: AI 副業マネタイズ（note / Brain / Coconala 等の国内向け）
-- **Claude Haiku で 5 カテゴリ別キュレーション**:
+- **Claude Haiku で 7 カテゴリ別キュレーション**:
   - 各カテゴリの「有益判定基準」を埋め込んだプロンプトでフィルタ
   - 英語記事は日本語に翻訳・要約
 - **Discord 通知**: カテゴリごとに色分けされた embed で 10 件ずつ送信
@@ -53,7 +55,9 @@ GitHub Actions (cron 09:00 JST)
    │
    └─ X API (lib/sources.py / X_QUERIES)
        ├ news        : OpenAI / Anthropic / DeepMind / Meta / mistralai / xAI / nvidia
-       ├ tips        : Claude / ChatGPT / Gemini プロンプト Tips
+       ├ tips        : ChatGPT / Claude / Gemini / Perplexity / Copilot / NotebookLM / Cursor Tips
+       ├ creative_ai : AI画像・AI動画
+       ├ company_updates : AI各社アップデート
        ├ monetize    : 海外マネタイズ
        └ monetize_jp : 国内マネタイズ
             │
@@ -61,12 +65,14 @@ GitHub Actions (cron 09:00 JST)
    Claude Haiku（カテゴリ別判定基準でフィルタ + 日本語翻訳・要約）
             │
             ▼
-   Discord Webhook（5 カテゴリ別 embed × 最大 10 件 / カテゴリ）
+   Discord Webhook（7 カテゴリ別 embed × 最大 10 件 / カテゴリ）
 
 カテゴリ別取得経路:
    - news        : RSS + X mix
    - tech        : RSS のみ
    - tips        : X のみ
+   - creative_ai : X のみ
+   - company_updates : X のみ
    - monetize    : X のみ
    - monetize_jp : RSS + X mix
 ```
@@ -80,9 +86,11 @@ flowchart TD
     B --> C2[RSS tech 3<br/>MIT Tech Review / HuggingFace / OpenAI]
     B --> C3[RSS monetize_jp 5<br/>note.com ハッシュタグ RSS]
     B --> D1[X news<br/>OpenAI / Anthropic / DeepMind /<br/>Meta / mistralai / xAI / nvidia]
-    B --> D2[X tips<br/>Claude/ChatGPT/Gemini プロンプト<br/>48h 以内・エンゲージメント順]
-    B --> D3[X monetize<br/>海外フリーランス/SaaS/自動化]
-    B --> D4[X monetize_jp<br/>note/Brain/Coconala/<br/>Udemy/Zenn 等]
+    B --> D2[X tips<br/>主要AIツール Tips<br/>48h 以内・エンゲージメント順]
+    B --> D3[X creative_ai<br/>AI画像・AI動画<br/>生成メディア]
+    B --> D4[X company_updates<br/>AI各社アップデート<br/>モデル/API/料金/研究]
+    B --> D5[X monetize<br/>海外フリーランス/SaaS/自動化]
+    B --> D6[X monetize_jp<br/>note/Brain/Coconala/<br/>Udemy/Zenn 等]
     C1 --> E[Claude Haiku<br/>カテゴリ別判定基準でフィルタ<br/>+ 日本語翻訳・要約<br/>lib/claude_client.py]
     C2 --> E
     C3 --> E
@@ -90,23 +98,29 @@ flowchart TD
     D2 --> E
     D3 --> E
     D4 --> E
+    D5 --> E
+    D6 --> E
     E --> F1[news embed<br/>RSS+X mix<br/>新モデル/政策/OSS]
     E --> F2[tech embed<br/>RSS のみ<br/>アーキ/ベンチ/最適化]
-    E --> F3[tips embed<br/>X のみ<br/>プロンプト Tips]
-    E --> F4[monetize embed<br/>X のみ<br/>海外マネタイズ]
-    E --> F5[monetize_jp embed<br/>RSS+X mix<br/>国内マネタイズ]
-    F1 --> G[Discord Webhook<br/>5 カテゴリ別 embed<br/>最大 10 件 / カテゴリ]
+    E --> F3[tips embed<br/>X のみ<br/>主要AIツール Tips]
+    E --> F4[creative_ai embed<br/>X のみ<br/>AI画像・AI動画]
+    E --> F5[company_updates embed<br/>X のみ<br/>AI各社アップデート]
+    E --> F6[monetize embed<br/>X のみ<br/>海外マネタイズ]
+    E --> F7[monetize_jp embed<br/>RSS+X mix<br/>国内マネタイズ]
+    F1 --> G[Discord Webhook<br/>7 カテゴリ別 embed<br/>最大 10 件 / カテゴリ]
     F2 --> G
     F3 --> G
     F4 --> G
     F5 --> G
+    F6 --> G
+    F7 --> G
 ```
 
-各カテゴリの「有益判定基準」は `lib/claude_client.py` の `_CRITERIA` で明示しており、Claude Haiku が一貫した方針でフィルタ・要約します（後述「5 カテゴリのキュレーション基準」セクション参照）。
+各カテゴリの「有益判定基準」は `lib/claude_client.py` の `_CRITERIA` で明示しており、Claude Haiku が一貫した方針でフィルタ・要約します（後述「7 カテゴリのキュレーション基準」セクション参照）。
 
 ## 動作スクリーンショット
 
-毎朝 09:00 JST に Discord へ届く `AI Daily` 配信。最新 AI ニュース・技術情報・Tips・国内マネタイズ・海外マネタイズの 5 カテゴリを 1 メッセージで配信します。
+毎朝 09:00 JST に Discord へ届く `AI Daily` 配信。最新 AI ニュース・技術情報・Tips・AI画像/AI動画・AI各社アップデート・国内マネタイズ・海外マネタイズの 7 カテゴリを 1 メッセージで配信します。
 
 ![Discord AI Daily 通知](docs/screenshots/discord-notification.jpg)
 
@@ -141,13 +155,15 @@ GitHub Secrets に以下を設定してください:
 - `DISCORD_WEBHOOK`
 - `ANTHROPIC_API_KEY`
 
-## 5 カテゴリのキュレーション基準
+## 7 カテゴリのキュレーション基準
 
 各カテゴリの「有益記事」判定基準は `lib/claude_client.py` の `_CRITERIA` に明示されており、以下のような項目を含みます:
 
 - **news**: 新モデル / 製品リリース、主要企業発表、AI 規制・政策、OSS リリース、資金調達
 - **tech**: 新アーキテクチャ、ベンチマーク、推論最適化、新 API / コンテキスト長拡張
-- **tips**: Claude / ChatGPT / Gemini の新機能、48h 以内の実践プロンプト
+- **tips**: ChatGPT / Claude / Gemini / Perplexity / Copilot / NotebookLM / Cursor 等の新機能、48h 以内の実践プロンプト
+- **creative_ai**: AI画像・AI動画（Midjourney / Runway / Sora / Kling / Pika / Luma / Stable Diffusion / ComfyUI / Flux 等）の新機能・使い方
+- **company_updates**: AI各社（OpenAI / Anthropic / Google DeepMind / Meta AI / xAI / Mistral / NVIDIA / Microsoft / Perplexity 等）のモデル・API・プロダクト更新
 - **monetize**: AI 個人マネタイズ全般（コンテンツ / フリーランス / SaaS / 自動化）
 - **monetize_jp**: 国内プラットフォーム（note / Brain / Coconala / Udemy / Zenn 等）
 
@@ -167,7 +183,7 @@ GitHub Secrets に以下を設定してください:
 
 `tips` カテゴリは情報の鮮度が命のため、48 時間以内の投稿に限定 + エンゲージメント数（いいね + RT × 5 + 引用 × 3）で並び替え。「古いけど話題」より「新しくて伸びている」を優先する。
 
-### 4. 5 カテゴリ embed 色分け
+### 4. 7 カテゴリ embed 色分け
 
 Discord での視認性を高めるため、`news` / `tech` / `tips` / `monetize` / `monetize_jp` で embed 色を変える。スクロール時に「自分の興味カテゴリ」を瞬時に識別可能。
 

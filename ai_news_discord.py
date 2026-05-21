@@ -81,10 +81,10 @@ def main() -> None:
         "description": (
             "**ソース**: TechCrunch / The Verge / VentureBeat / MIT Tech Review / HuggingFace / X\n"
             "**処理**: Claude Haiku にてフィルタリング・日本語翻訳・要約済み\n"
-            "**Tips**: 48h以内・エンゲージメント順（いいね + RT×5 + 引用×3）"
+            "**X**: 48h以内・エンゲージメント順（いいね + RT×5 + 引用×3）"
         ),
         "color": 0x5865F2,
-        "footer": {"text": "毎朝 9:00 JST 自動配信 | EA系 AI News Bot"},
+        "footer": {"text": "毎朝 9:00 JST 自動配信 | AI情報bot"},
     }]
 
     # ------------------------------------------------------------------
@@ -127,7 +127,7 @@ def main() -> None:
         embeds.append(embed)
 
     # ------------------------------------------------------------------
-    # Tips: Claude/ChatGPT/Gemini 使い方（X API・48h・エンゲージ順）
+    # Tips: 主要AIツールの使い方（X API・48h・エンゲージ順）
     # ------------------------------------------------------------------
     print("[tips] X 取得中 (48h)...")
     tips_items = fetch_x_posts("tips", bearer, max_results=20, hours=48)
@@ -137,6 +137,34 @@ def main() -> None:
     curated_tips = filter_and_translate(tips_items, "tips", anthropic_key, max_output=5)
     print(f"  -> {len(curated_tips)} 件選出")
     embed = build_embed("tips", curated_tips)
+    if embed:
+        embeds.append(embed)
+
+    # ------------------------------------------------------------------
+    # AI画像・AI動画: 生成メディア系ツールの新機能・使い方
+    # ------------------------------------------------------------------
+    print("[creative_ai] X 取得中 (48h)...")
+    creative_items = fetch_x_posts("creative_ai", bearer, max_results=20, hours=48)
+    print(f"  X/creative_ai: {len(creative_items)} 件 (エンゲージ降順)")
+
+    print(f"[creative_ai] Claude フィルタ中 (計 {len(creative_items)} 件)...")
+    curated_creative = filter_and_translate(creative_items, "creative_ai", anthropic_key, max_output=5)
+    print(f"  -> {len(curated_creative)} 件選出")
+    embed = build_embed("creative_ai", curated_creative)
+    if embed:
+        embeds.append(embed)
+
+    # ------------------------------------------------------------------
+    # AI各社アップデート: 公式アカウントのモデル・API・プロダクト更新
+    # ------------------------------------------------------------------
+    print("[company_updates] X 取得中 (48h)...")
+    company_items = fetch_x_posts("company_updates", bearer, max_results=20, hours=48)
+    print(f"  X/company_updates: {len(company_items)} 件 (エンゲージ降順)")
+
+    print(f"[company_updates] Claude フィルタ中 (計 {len(company_items)} 件)...")
+    curated_company = filter_and_translate(company_items, "company_updates", anthropic_key, max_output=5)
+    print(f"  -> {len(curated_company)} 件選出")
+    embed = build_embed("company_updates", curated_company)
     if embed:
         embeds.append(embed)
 

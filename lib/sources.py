@@ -76,11 +76,27 @@ X_QUERIES: dict[str, str] = {
         " -is:retweet -is:reply"
     ),
     "tips": (
-        # Claude / ChatGPT / Gemini の最新技術・使い方に特化
-        "(Claude OR ChatGPT OR \"GPT-4o\" OR \"GPT-4\" OR Gemini OR \"Claude 3\" OR \"Claude 4\")"
+        # 主要AIアシスタント / AI開発ツールの最新機能・使い方に特化
+        "(Claude OR ChatGPT OR Gemini OR Perplexity OR Copilot OR NotebookLM"
+        " OR Cursor OR Windsurf OR \"AI agent\" OR \"AI assistant\")"
         " (tip OR trick OR prompt OR workflow OR tutorial OR \"how to\""
         " OR update OR feature OR released OR \"new feature\" OR \"just dropped\")"
         " -is:retweet -is:reply lang:en"
+    ),
+    "creative_ai": (
+        "(Midjourney OR Runway OR Sora OR Kling OR Pika OR Luma OR \"Stable Diffusion\""
+        " OR ComfyUI OR Flux OR \"DALL-E\" OR Firefly OR \"AI image\" OR \"AI video\")"
+        " (update OR feature OR model OR workflow OR tutorial OR prompt OR \"how to\""
+        " OR released OR \"new feature\" OR \"just dropped\")"
+        " -is:retweet -is:reply lang:en"
+    ),
+    "company_updates": (
+        "(from:OpenAI OR from:AnthropicAI OR from:GoogleDeepMind OR from:MetaAI"
+        " OR from:mistralai OR from:xai OR from:nvidia OR from:Microsoft"
+        " OR from:perplexity_ai OR from:GoogleAI)"
+        " (launch OR launched OR release OR released OR update OR model OR API"
+        " OR feature OR availability OR pricing OR benchmark OR research)"
+        " -is:retweet -is:reply"
     ),
     "monetize": (
         "(AI OR ChatGPT OR Midjourney OR Claude OR Gemini OR GPT OR \"Stable Diffusion\""

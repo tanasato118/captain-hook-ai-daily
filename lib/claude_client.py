@@ -59,16 +59,47 @@ _CRITERIA: dict[str, str] = {
   ※日本語の記事はそのまま日本語で要約してください。英語記事は翻訳。""",
 
     "tips": """\
-対象: Claude / ChatGPT / Gemini の最新技術・新機能・実践的な使い方のみ
-・新機能・新モデルのリリース情報（GPT-4o, Claude 3.7, Gemini 2.0 等）
+対象: Claude / ChatGPT / Gemini / Perplexity / Copilot / NotebookLM / Cursor / Windsurf など主要AIツールの最新機能・実践的な使い方のみ
+・新機能・新モデルのリリース情報（ChatGPT, Claude, Gemini, Perplexity, Copilot, NotebookLM, Cursor 等）
 ・エンゲージメントが高い（いいね・RT 多数）実践的なプロンプト・ワークフロー
 ・「こう使ったら驚くほど便利だった」系の具体的 Tips（手順が書いてあるもの）
-・新しいコンテキスト長・マルチモーダル機能などの活用法
+・新しいコンテキスト長・マルチモーダル・エージェント・開発支援機能などの活用法
 ・48時間以内の投稿、エンゲージメント順に並んでいるので上位を優先
 除外:
   × 抽象的な感想・雑談・ミーム
   × 比較意見だけで手法がないもの
   × 古い情報の再共有""",
+
+    "creative_ai": """\
+対象: AI画像・AI動画・生成メディア分野の新機能、使い方、実践ワークフロー
+・Midjourney / Runway / Sora / Kling / Pika / Luma / Stable Diffusion / ComfyUI / Flux / DALL-E / Adobe Firefly 等の新モデル・新機能
+・生成品質、制御性、動画尺、音声、編集、商用利用、API などの具体的な改善
+・画像生成・動画生成のプロンプト、制作手順、ComfyUI ワークフロー、実例付き Tips
+・広告素材、SNS動画、商品画像、サムネイルなど制作現場で使える活用法
+有益の条件:
+  ✅ ツール名・機能名・手順・設定値・比較結果のいずれかが具体的
+  ✅ 実際の制作フローに転用できる
+  ✅ 新しいモデルや機能の変化が分かる
+除外:
+  × 完成作品の自慢だけで手順がない投稿
+  × 汎用的な「AI動画がすごい」系の感想
+  × 権利・商用利用に関する根拠のない断言
+  × 投資・トークン・暗号資産""",
+
+    "company_updates": """\
+対象: OpenAI / Anthropic / Google DeepMind / Meta AI / xAI / Mistral / NVIDIA / Microsoft / Perplexity などAI各社の公式・準公式アップデート
+・新モデル、API、SDK、料金、提供地域、提供プラン、ベータ公開、一般公開
+・プロダクト新機能、研究発表、ベンチマーク、OSS リリース、開発者向け更新
+・企業戦略として重要な提携、買収、インフラ、GPU、エージェント関連発表
+有益の条件:
+  ✅ どの会社が何を出したかが具体的
+  ✅ モデル名・API名・価格・提供範囲・性能指標などの確認可能な情報がある
+  ✅ 開発・業務利用・情報収集に影響する
+除外:
+  × 公式根拠のない噂・リーク
+  × 株価・投資目線だけの話
+  × 比較煽り・感想だけ
+  × 既存発表の単なる再掲""",
 
     "monetize": """\
 対象: 個人・フリーランサーが副業として AI を活用してマネタイズできるあらゆる手法
@@ -111,7 +142,9 @@ _CRITERIA: dict[str, str] = {
 _CAT_NAME: dict[str, str] = {
     "news":        "最新AIニュース",
     "tech":        "AI技術情報",
-    "tips":        "Claude/ChatGPT/Gemini 使い方Tips",
+    "tips":        "主要AIツールの使い方Tips",
+    "creative_ai": "AI画像・AI動画",
+    "company_updates": "AI各社アップデート",
     "monetize":    "AI副業マネタイズ（海外・個人向け）",
     "monetize_jp": "AI副業マネタイズ（国内／note・Brain等）",
 }

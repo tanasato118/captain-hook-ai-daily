@@ -13,7 +13,9 @@ _EMBED_META: dict[str, tuple[str, int]] = {
     # category -> (title, color)
     "news":        ("🌐 最新AIニュース",                              0xFF6B6B),
     "tech":        ("⚙️ AI技術情報",                                  0x6BCF7F),
-    "tips":        ("💡 Claude/ChatGPT/Gemini Tips（48h高エンゲージ）", 0x7289DA),
+    "tips":        ("💡 主要AIツール Tips（48h高エンゲージ）",          0x7289DA),
+    "creative_ai": ("🎬 AI画像・AI動画",                               0x9B59B6),
+    "company_updates": ("🏢 AI各社アップデート",                       0x3498DB),
     "monetize_jp": ("🇯🇵 AI副業マネタイズ（note・Brain・国内）",       0xE84393),
     "monetize":    ("🌍 AI副業マネタイズ（海外・全手法）",             0xFFE66D),
 }
